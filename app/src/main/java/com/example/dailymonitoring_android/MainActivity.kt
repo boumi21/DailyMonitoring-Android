@@ -9,6 +9,7 @@ import android.widget.LinearLayout
 import androidx.appcompat.app.AppCompatActivity
 import com.example.dailymonitoring_android.api.DoctorService
 import com.example.dailymonitoring_android.model.Question
+import com.example.dailymonitoring_android.model.Questionnaire
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -56,8 +57,21 @@ class MainActivity : AppCompatActivity() {
             }
         })
 
+        val firstQuestion = service.getFirstQuestion()
+        firstQuestion.enqueue(object : Callback<List<Questionnaire>> {
 
+            override fun onResponse(
+                    call: Call<List<Questionnaire>>,
+                    response: Response<List<Questionnaire>>
+            ) {
+                val allTanStop = response.body()
+                Log.i("firstQuestion", "premiere question : ${allTanStop?.get(0)?.NUM_PREMIERE_QUESTION}")
+            }
 
+            override fun onFailure(call: Call<List<Questionnaire>>, t: Throwable) {
+                Log.e("erreur First question", "errrreuuuuuuuuuurrrrr : $t")
+            }
+        })
 
 
     }
