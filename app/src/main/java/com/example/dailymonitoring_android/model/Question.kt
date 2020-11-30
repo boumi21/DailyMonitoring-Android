@@ -4,3 +4,4 @@ class Question {
     var NUM_QUESTION: Int = -1
     var QUESTION: String? = null
 }
+

@@ -1,4 +1,4 @@
-package com.example.dailymonitoring_android
+package com.example.dailymonitoring_android.activities
 
 import android.os.Bundle
 import android.util.Log
@@ -7,6 +7,7 @@ import android.view.View.generateViewId
 import android.widget.Button
 import android.widget.LinearLayout
 import androidx.appcompat.app.AppCompatActivity
+import com.example.dailymonitoring_android.R
 import com.example.dailymonitoring_android.api.DoctorService
 import com.example.dailymonitoring_android.model.Question
 import com.example.dailymonitoring_android.model.Questionnaire
@@ -19,7 +20,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 class MainActivity : AppCompatActivity() {
 
-    private val apiUrl = "https://603c3d4a887d.ngrok.io" //Remplacer par http://localhost:8080 ou adresse ngrok
+    private val apiUrl = "http://10.0.2.2:8080" //Remplacer par http://10.0.2.2:8080 ou adresse ngrok
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
