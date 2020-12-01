@@ -9,6 +9,8 @@ import android.widget.LinearLayout
 import androidx.appcompat.app.AppCompatActivity
 import com.example.dailymonitoring_android.R
 import com.example.dailymonitoring_android.api.DoctorService
+import com.example.dailymonitoring_android.model.HTTPRequestBody
+import com.example.dailymonitoring_android.model.QRNQ
 import com.example.dailymonitoring_android.model.Question
 import com.example.dailymonitoring_android.model.Questionnaire
 import retrofit2.Call
@@ -35,6 +37,29 @@ class MainActivity : AppCompatActivity() {
             .build()
 
         val service = retrofit.create(DoctorService::class.java)
+
+        val body = HTTPRequestBody("2")
+
+        val QRNQ = service.getQRNQ(body)
+        QRNQ.enqueue(object : Callback<List<QRNQ>> {
+
+            override fun onResponse(
+                    call: Call<List<QRNQ>>,
+                    response: Response<List<QRNQ>>
+            ) {
+                val allTanStop = response.body()
+                allTanStop?.let {
+                    for (tanStop in it) {
+                        Log.i("TEST QRNQ", "${tanStop.question}")
+                    }
+                }
+            }
+
+            override fun onFailure(call: Call<List<QRNQ>>, t: Throwable) {
+                Log.e("erreur QRNQ question", "errrreuuuuuuuuuurrrrr : $t")
+            }
+        })
+
         val allQuestions = service.getAllQuestions()
 
 
