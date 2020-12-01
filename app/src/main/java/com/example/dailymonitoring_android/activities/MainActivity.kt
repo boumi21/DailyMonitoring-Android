@@ -1,6 +1,7 @@
 package com.example.dailymonitoring_android.activities
 
 import android.content.Intent
+import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -12,6 +13,7 @@ import com.example.dailymonitoring_android.R
 import com.example.dailymonitoring_android.api.RetrofitService
 import com.example.dailymonitoring_android.model.HTTPRequestBody
 import com.example.dailymonitoring_android.model.QRNQ
+import kotlinx.android.synthetic.main.activity_main.*
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -22,7 +24,7 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        val layout: LinearLayout = findViewById<View>(R.id.activity_main) as LinearLayout
+        val layout: LinearLayout = findViewById<View>(R.id.layout_responses) as LinearLayout
 
         //Récupère la question à traiter
         val thisQuestion = intent.getIntExtra("nextQuestionID", -1) // Récupère le paramètre nextQuestionID
@@ -40,7 +42,10 @@ class MainActivity : AppCompatActivity() {
                     response: Response<List<QRNQ>>
             ) {
                 val qrnqResponse = response.body()
-                qrnqResponse?.let { generateButtons(it, layout) }
+                qrnqResponse?.let {
+                    generateButtons(it, layout)
+                    generatetextQuestion(it[0].question)
+                }
             }
 
             override fun onFailure(call: Call<List<QRNQ>>, t: Throwable) {
@@ -55,6 +60,7 @@ class MainActivity : AppCompatActivity() {
             val button = Button(this)
             button.text = qrnq.reponse
             button.id = generateViewId()
+            button.setBackgroundColor(Color.GREEN)
             button.setOnClickListener {
                 val intent = Intent(this, MainActivity::class.java)
                 intent.putExtra("nextQuestionID", qrnq.num_question_suivante) // Ajoute un paramètre nextQuestionID
@@ -62,6 +68,10 @@ class MainActivity : AppCompatActivity() {
             }
             layout.addView(button)
         }
+    }
+
+    fun generatetextQuestion(textQuestion: String?){
+        text_question.text = textQuestion
     }
 
 }
