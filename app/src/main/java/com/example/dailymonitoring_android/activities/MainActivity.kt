@@ -12,8 +12,6 @@ import com.example.dailymonitoring_android.R
 import com.example.dailymonitoring_android.api.DoctorService
 import com.example.dailymonitoring_android.model.HTTPRequestBody
 import com.example.dailymonitoring_android.model.QRNQ
-import com.example.dailymonitoring_android.model.Question
-import com.example.dailymonitoring_android.model.Questionnaire
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -30,37 +28,37 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         val layout: LinearLayout = findViewById<View>(R.id.activity_main) as LinearLayout
 
+        //Récupère le service (pour l'accès à l'API)
+        val service = getService()
 
-        val retrofit = Retrofit.Builder()
-                .baseUrl(apiUrl)
-                .addConverterFactory(GsonConverterFactory.create())
-                .build()
-
-        val service = retrofit.create(DoctorService::class.java)
-
-        val nextQuestionID = intent.getStringExtra("nextQuestionID") // Récupère le paramètre nextQuestionID
+        //Récupère la question à traiter
+        val thisQuestion = intent.getIntExtra("nextQuestionID", -1) // Récupère le paramètre nextQuestionID
         Log.i("---", "---")
-        Log.i("ID question suivante :", "$nextQuestionID")
+        Log.i("ID question suivante :", "$thisQuestion")
         Log.i("---", "---")
 
-        val body = HTTPRequestBody("2")
+        val body = HTTPRequestBody(thisQuestion.toString())
+        //val body = HTTPRequestBody("2")
 
-        val QRNQ = service.getQRNQ(body)
-        QRNQ.enqueue(object : Callback<List<QRNQ>> {
+
+        val qrnq = service.getQRNQ(body)
+        qrnq.enqueue(object : Callback<List<QRNQ>> {
 
             override fun onResponse(
                     call: Call<List<QRNQ>>,
                     response: Response<List<QRNQ>>
             ) {
-                val allTanStop = response.body()
-                allTanStop?.let { generateButtons(it, layout) }
+                val qrnqResponse = response.body()
+                qrnqResponse?.let { generateButtons(it, layout) }
             }
 
             override fun onFailure(call: Call<List<QRNQ>>, t: Throwable) {
-                Log.e("erreur QRNQ question", "errrreuuuuuuuuuurrrrr : $t")
+                Log.e("erreur QRNQ question", "erreur : $t")
             }
         })
-        //Génére des boutons avec les réponses à la question
+
+
+    //Génére des boutons avec les réponses à la question
     }
 
     fun generateButtons(listQRNQ: List<QRNQ>, layout: LinearLayout) {
@@ -70,10 +68,19 @@ class MainActivity : AppCompatActivity() {
             button.id = generateViewId()
             button.setOnClickListener {
                 val intent = Intent(this, MainActivity::class.java)
-                intent.putExtra("nextQuestionID", "${qrnq.num_question_suivante}") // Ajoute un paramètre nextQuestionID
+                intent.putExtra("nextQuestionID", qrnq.num_question_suivante) // Ajoute un paramètre nextQuestionID
                 startActivity(intent)
             }
             layout.addView(button)
         }
+    }
+
+    fun getService(): DoctorService{
+        val retrofit = Retrofit.Builder()
+            .baseUrl(apiUrl)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+
+        return retrofit.create(DoctorService::class.java)
     }
 }
