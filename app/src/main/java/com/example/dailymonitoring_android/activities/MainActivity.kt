@@ -1,5 +1,6 @@
 package com.example.dailymonitoring_android.activities
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -30,13 +31,17 @@ class MainActivity : AppCompatActivity() {
         val layout: LinearLayout = findViewById<View>(R.id.activity_main) as LinearLayout
 
 
-
         val retrofit = Retrofit.Builder()
-            .baseUrl(apiUrl)
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
+                .baseUrl(apiUrl)
+                .addConverterFactory(GsonConverterFactory.create())
+                .build()
 
         val service = retrofit.create(DoctorService::class.java)
+
+        val nextQuestionID = intent.getStringExtra("nextQuestionID") // Récupère le paramètre nextQuestionID
+        Log.i("---", "---")
+        Log.i("ID question suivante :", "$nextQuestionID")
+        Log.i("---", "---")
 
         val body = HTTPRequestBody("2")
 
@@ -48,71 +53,26 @@ class MainActivity : AppCompatActivity() {
                     response: Response<List<QRNQ>>
             ) {
                 val allTanStop = response.body()
-                allTanStop?.let {
-                    for (tanStop in it) {
-                        Log.i("TEST QRNQ", "${tanStop.question}")
-                    }
-                }
+                allTanStop?.let { generateButtons(it, layout) }
             }
 
             override fun onFailure(call: Call<List<QRNQ>>, t: Throwable) {
                 Log.e("erreur QRNQ question", "errrreuuuuuuuuuurrrrr : $t")
             }
         })
-
-        val allQuestions = service.getAllQuestions()
-
-
-        allQuestions.enqueue(object : Callback<List<Question>> {
-
-            override fun onResponse(
-                    call: Call<List<Question>>,
-                    response: Response<List<Question>>
-            ) {
-                val allTanStop = response.body()
-                allTanStop?.let { generateButtons(it, layout) }
-                allTanStop?.let {
-                    for (tanStop in it) {
-                        Log.d("AllQuestions", "${tanStop.QUESTION}")
-                    }
-                }
-            }
-
-            override fun onFailure(call: Call<List<Question>>, t: Throwable) {
-                Log.e("test", "errrreuuuuuuuuuurrrrr : $t")
-            }
-        })
-
-        val firstQuestion = service.getFirstQuestion()
-        firstQuestion.enqueue(object : Callback<List<Questionnaire>> {
-
-            override fun onResponse(
-                    call: Call<List<Questionnaire>>,
-                    response: Response<List<Questionnaire>>
-            ) {
-                val allTanStop = response.body()
-                Log.i("firstQuestion", "premiere question : ${allTanStop?.get(0)?.NUM_PREMIERE_QUESTION}")
-            }
-
-            override fun onFailure(call: Call<List<Questionnaire>>, t: Throwable) {
-                Log.e("erreur First question", "errrreuuuuuuuuuurrrrr : $t")
-            }
-        })
-
-
+        //Génére des boutons avec les réponses à la question
     }
 
-    /**
-     * Génére des boutons avec toutes les questsions de la bdd
-     *
-     * @param listQuestions Liste de toutes les questions de la bdd
-     * @param layout layout actuel
-     */
-    fun generateButtons(listQuestions: List<Question>, layout: LinearLayout){
-        for (question in listQuestions){
+    fun generateButtons(listQRNQ: List<QRNQ>, layout: LinearLayout) {
+        for (qrnq in listQRNQ) {
             val button = Button(this)
-            button.text = question.QUESTION
-            button.id = generateViewId() // <-- Génère un id non utilisé pour le bouton
+            button.text = qrnq.reponse
+            button.id = generateViewId()
+            button.setOnClickListener {
+                val intent = Intent(this, MainActivity::class.java)
+                intent.putExtra("nextQuestionID", "${qrnq.num_question_suivante}") // Ajoute un paramètre nextQuestionID
+                startActivity(intent)
+            }
             layout.addView(button)
         }
     }
