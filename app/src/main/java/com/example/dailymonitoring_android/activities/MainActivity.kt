@@ -1,5 +1,6 @@
 package com.example.dailymonitoring_android.activities
 
+import android.content.Context
 import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
@@ -33,39 +34,49 @@ class MainActivity : AppCompatActivity() {
         Log.i("---", "---")
 
         if (thisQuestion == null || thisQuestion == -1) {
-            generateTextQuestion("Merci d'avoir répondu à ce questionnaire")
-            val button = Button(this)
-            button.text = "Quitter"
-            button.id = generateViewId()
-            button.setBackgroundColor(Color.BLUE)
-            button.setOnClickListener {
-                finishAffinity()
-            }
-            layout.addView(button)
+            generateEndingScreen(layout)
         }
         else {
-            val body = HTTPRequestBody(thisQuestion.toString())
-
-            val qrnq = RetrofitService.doctorService.getQRNQ(body)
-            qrnq.enqueue(object : Callback<List<QRNQ>> {
-
-                override fun onResponse(
-                        call: Call<List<QRNQ>>,
-                        response: Response<List<QRNQ>>
-                ) {
-                    val qrnqResponse = response.body()
-                    qrnqResponse?.let {
-                        generateButtons(it, layout)
-                        generateTextQuestion(it[0].question)
-                    }
-                }
-
-                override fun onFailure(call: Call<List<QRNQ>>, t: Throwable) {
-                    Log.e("erreur QRNQ question", "erreur : $t")
-                }
-            })
+            generateQuestionScreen(thisQuestion, layout)
         }
     }
+
+    //Génère une page avec une question et ses réponses
+    fun generateQuestionScreen(thisQuestion: Int, layout: LinearLayout){
+        val body = HTTPRequestBody(thisQuestion.toString())
+        val qrnq = RetrofitService.doctorService.getQRNQ(body)
+
+        qrnq.enqueue(object : Callback<List<QRNQ>> {
+
+            override fun onResponse(
+                    call: Call<List<QRNQ>>,
+                    response: Response<List<QRNQ>>
+            ) {
+                val qrnqResponse = response.body()
+                qrnqResponse?.let {
+                    generateButtons(it, layout)
+                    generateTextQuestion(it[0].question)
+                }
+            }
+            override fun onFailure(call: Call<List<QRNQ>>, t: Throwable) {
+                Log.e("erreur QRNQ question", "erreur : $t")
+            }
+        })
+    }
+
+    // Génère une page de fin de questionnaire
+    fun generateEndingScreen(layout: LinearLayout){
+        generateTextQuestion("Merci d'avoir répondu à ce questionnaire")
+        val button = Button(this)
+        button.text = "Quitter"
+        button.id = generateViewId()
+        button.setBackgroundColor(Color.BLUE)
+        button.setOnClickListener {
+            finishAffinity()
+        }
+        layout.addView(button)
+    }
+
 
     //Génére des boutons avec les réponses à la question
     fun generateButtons(listQRNQ: List<QRNQ>, layout: LinearLayout) {
@@ -83,6 +94,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    //Associe le texte de la question au textView
     fun generateTextQuestion(textQuestion: String?){
         text_question.text = textQuestion
     }
