@@ -32,26 +32,39 @@ class MainActivity : AppCompatActivity() {
         Log.i("ID question suivante :", "$thisQuestion")
         Log.i("---", "---")
 
-        val body = HTTPRequestBody(thisQuestion.toString())
+        if (thisQuestion == null || thisQuestion == -1) {
+            generateTextQuestion("Merci d'avoir répondu à ce questionnaire")
+            val button = Button(this)
+            button.text = "Quitter"
+            button.id = generateViewId()
+            button.setBackgroundColor(Color.BLUE)
+            button.setOnClickListener {
+                finishAffinity()
+            }
+            layout.addView(button)
+        }
+        else {
+            val body = HTTPRequestBody(thisQuestion.toString())
 
-        val qrnq = RetrofitService.doctorService.getQRNQ(body)
-        qrnq.enqueue(object : Callback<List<QRNQ>> {
+            val qrnq = RetrofitService.doctorService.getQRNQ(body)
+            qrnq.enqueue(object : Callback<List<QRNQ>> {
 
-            override fun onResponse(
-                    call: Call<List<QRNQ>>,
-                    response: Response<List<QRNQ>>
-            ) {
-                val qrnqResponse = response.body()
-                qrnqResponse?.let {
-                    generateButtons(it, layout)
-                    generatetextQuestion(it[0].question)
+                override fun onResponse(
+                        call: Call<List<QRNQ>>,
+                        response: Response<List<QRNQ>>
+                ) {
+                    val qrnqResponse = response.body()
+                    qrnqResponse?.let {
+                        generateButtons(it, layout)
+                        generateTextQuestion(it[0].question)
+                    }
                 }
-            }
 
-            override fun onFailure(call: Call<List<QRNQ>>, t: Throwable) {
-                Log.e("erreur QRNQ question", "erreur : $t")
-            }
-        })
+                override fun onFailure(call: Call<List<QRNQ>>, t: Throwable) {
+                    Log.e("erreur QRNQ question", "erreur : $t")
+                }
+            })
+        }
     }
 
     //Génére des boutons avec les réponses à la question
@@ -70,7 +83,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    fun generatetextQuestion(textQuestion: String?){
+    fun generateTextQuestion(textQuestion: String?){
         text_question.text = textQuestion
     }
 
