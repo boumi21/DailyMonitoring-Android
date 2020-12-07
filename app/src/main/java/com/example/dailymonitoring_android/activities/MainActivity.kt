@@ -1,14 +1,18 @@
 package com.example.dailymonitoring_android.activities
 
+import android.app.Activity
+import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
+import android.speech.RecognizerIntent
 import android.util.Log
 import android.view.View
 import android.view.View.generateViewId
 import android.widget.Button
 import android.widget.LinearLayout
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.dailymonitoring_android.R
 import com.example.dailymonitoring_android.api.RetrofitService
@@ -18,9 +22,16 @@ import kotlinx.android.synthetic.main.activity_main.*
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.util.*
 
 
 class MainActivity : AppCompatActivity() {
+
+    // Code pour Speech To Text
+    companion object {
+        private const val REQUEST_CODE_STT = 1
+    }
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -38,6 +49,44 @@ class MainActivity : AppCompatActivity() {
         }
         else {
             generateQuestionScreen(thisQuestion, layout)
+        }
+
+        listenSpeechToText()
+    }
+
+    // Bouton qui lance le Speech To Text
+    fun listenSpeechToText(){
+        button_stt.setOnClickListener {
+            val sttIntent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
+            sttIntent.putExtra(
+                    RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+                    RecognizerIntent.LANGUAGE_MODEL_FREE_FORM
+            )
+            sttIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, "fr-FR")
+            sttIntent.putExtra(RecognizerIntent.EXTRA_PROMPT, "Parlez maintenant!")
+
+            try {
+                startActivityForResult(sttIntent, REQUEST_CODE_STT)
+            } catch (e: ActivityNotFoundException) {
+                e.printStackTrace()
+                Toast.makeText(this, "Votre appareil n'est pas compabible.", Toast.LENGTH_LONG).show()
+            }
+        }
+    }
+
+    //Récupère le résultat du Speech To Text
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        when (requestCode) {
+            REQUEST_CODE_STT -> {
+                if (resultCode == Activity.RESULT_OK && data != null) {
+                    val result = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
+                    result?.let {
+                        val recognizedText = it[0]
+                        text_stt.text = recognizedText
+                    }
+                }
+            }
         }
     }
 
