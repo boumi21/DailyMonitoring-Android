@@ -5,8 +5,10 @@ import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.graphics.Color
+import android.os.Build
 import android.os.Bundle
 import android.speech.RecognizerIntent
+import android.speech.tts.TextToSpeech
 import android.util.Log
 import android.view.View
 import android.view.View.generateViewId
@@ -32,6 +34,15 @@ class MainActivity : AppCompatActivity() {
         private const val REQUEST_CODE_STT = 1
     }
 
+    private val textToSpeechEngine: TextToSpeech by lazy {
+        TextToSpeech(this
+        ) { status ->
+            if (status == TextToSpeech.SUCCESS) {
+                textToSpeechEngine.language = Locale.FRANCE
+            }
+        }
+    }
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -52,6 +63,24 @@ class MainActivity : AppCompatActivity() {
         }
 
         listenSpeechToText()
+        speakTextToSpeech()
+
+    }
+
+    // Bouton qui lance le Text To Speech
+    fun speakTextToSpeech(){
+        button_tts.setOnClickListener {
+            val text = text_stt.text.toString().trim()
+            if (text.isNotEmpty()) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    textToSpeechEngine.speak(text, TextToSpeech.QUEUE_FLUSH, null, "tts1")
+                } else {
+                    textToSpeechEngine.speak(text, TextToSpeech.QUEUE_FLUSH, null)
+                }
+            } else {
+                Toast.makeText(this, "Il n'y a pas de texte à lire", Toast.LENGTH_LONG).show()
+            }
+        }
     }
 
     // Bouton qui lance le Speech To Text
@@ -147,5 +176,17 @@ class MainActivity : AppCompatActivity() {
     fun generateTextQuestion(textQuestion: String?){
         text_question.text = textQuestion
     }
+
+
+    override fun onPause() {
+        textToSpeechEngine.stop()
+        super.onPause()
+    }
+
+    override fun onDestroy() {
+        textToSpeechEngine.shutdown()
+        super.onDestroy()
+    }
+
 
 }
