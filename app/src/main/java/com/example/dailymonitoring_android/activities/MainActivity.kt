@@ -27,20 +27,13 @@ import retrofit2.Response
 import java.util.*
 
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
+
+    private var tts: TextToSpeech? = null
 
     // Code pour Speech To Text
     companion object {
         private const val REQUEST_CODE_STT = 1
-    }
-
-    private val textToSpeechEngine: TextToSpeech by lazy {
-        TextToSpeech(this
-        ) { status ->
-            if (status == TextToSpeech.SUCCESS) {
-                textToSpeechEngine.language = Locale.FRANCE
-            }
-        }
     }
 
 
@@ -61,10 +54,23 @@ class MainActivity : AppCompatActivity() {
         else {
             generateQuestionScreen(thisQuestion, layout)
         }
-
+        tts = TextToSpeech(this, this)
         listenSpeechToText()
         speakTextToSpeech()
 
+    }
+
+    fun launchTTS(){
+        val textQuestion = text_question.text.toString().trim()
+        if (textQuestion.isNotEmpty()) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                tts?.speak(textQuestion, TextToSpeech.QUEUE_FLUSH, null, "tts1")
+            } else {
+                tts?.speak(textQuestion, TextToSpeech.QUEUE_FLUSH, null)
+            }
+        } else {
+            Toast.makeText(this, "Il n'y a pas de texte à lire", Toast.LENGTH_LONG).show()
+        }
     }
 
     // Bouton qui lance le Text To Speech
@@ -73,9 +79,9 @@ class MainActivity : AppCompatActivity() {
             val text = text_stt.text.toString().trim()
             if (text.isNotEmpty()) {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                    textToSpeechEngine.speak(text, TextToSpeech.QUEUE_FLUSH, null, "tts1")
+                    tts?.speak(text, TextToSpeech.QUEUE_FLUSH, null, "tts1")
                 } else {
-                    textToSpeechEngine.speak(text, TextToSpeech.QUEUE_FLUSH, null)
+                    tts?.speak(text, TextToSpeech.QUEUE_FLUSH, null)
                 }
             } else {
                 Toast.makeText(this, "Il n'y a pas de texte à lire", Toast.LENGTH_LONG).show()
@@ -179,13 +185,23 @@ class MainActivity : AppCompatActivity() {
 
 
     override fun onPause() {
-        textToSpeechEngine.stop()
+        tts?.stop()
         super.onPause()
     }
 
     override fun onDestroy() {
-        textToSpeechEngine.shutdown()
+        tts?.shutdown()
         super.onDestroy()
+    }
+
+    override fun onInit(status: Int) {
+        if (status == TextToSpeech.SUCCESS) {
+            // Langue Francaise
+            tts!!.language = Locale.FRANCE
+            launchTTS()
+        } else {
+            Log.e("TTS", "Initialization Failed!")
+        }
     }
 
 
