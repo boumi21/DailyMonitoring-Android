@@ -30,6 +30,7 @@ import java.util.*
 class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     private var tts: TextToSpeech? = null
+    var listButtons = mutableListOf<Button>()
 
     // Code pour Speech To Text
     companion object {
@@ -118,7 +119,13 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                     val result = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
                     result?.let {
                         val recognizedText = it[0]
-                        text_stt.text = recognizedText
+                        text_stt.text = recognizedText.toUpperCase().trim()
+
+                        listButtons.forEach {
+                            if (it.text == text_stt.text) {
+                                it.performClick()
+                            }
+                        }
                     }
                 }
             }
@@ -166,7 +173,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     fun generateButtons(listQRNQ: List<QRNQ>, layout: LinearLayout) {
         for (qrnq in listQRNQ) {
             val button = Button(this)
-            button.text = qrnq.reponse
+            button.text = qrnq.reponse?.toUpperCase()?.trim() ?: null
             button.id = generateViewId()
             button.setBackgroundColor(Color.GREEN)
             button.setOnClickListener {
@@ -175,6 +182,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 startActivity(intent)
             }
             layout.addView(button)
+            listButtons.add(button)
         }
     }
 
