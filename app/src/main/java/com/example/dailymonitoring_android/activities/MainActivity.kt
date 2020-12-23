@@ -172,17 +172,25 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     //Génére des boutons avec les réponses à la question
     fun generateButtons(listQRNQ: List<QRNQ>, layout: LinearLayout) {
         for (qrnq in listQRNQ) {
-            val button = Button(this)
-            button.text = qrnq.reponse?.toUpperCase()?.trim() ?: null
-            button.id = generateViewId()
-            button.setBackgroundColor(Color.GREEN)
-            button.setOnClickListener {
-                val intent = Intent(this, MainActivity::class.java)
-                intent.putExtra("nextQuestionID", qrnq.num_question_suivante) // Ajoute un paramètre nextQuestionID
-                startActivity(intent)
+            if (qrnq.reponse != null) {
+                val button = Button(this)
+                button.text = qrnq.reponse?.toUpperCase()?.trim() ?: null
+                button.id = generateViewId()
+                button.setBackgroundColor(Color.GREEN)
+                button.setOnClickListener {
+                    val intent = Intent(this, MainActivity::class.java)
+                    intent.putExtra("nextQuestionID", qrnq.num_question_suivante) // Ajoute un paramètre nextQuestionID
+                    startActivity(intent)
+                }
+                layout.addView(button)
+                listButtons.add(button)
             }
-            layout.addView(button)
-            listButtons.add(button)
+        }
+
+        if (listButtons.isEmpty()) {
+            val intent = Intent(this, MainActivity::class.java)
+            intent.putExtra("nextQuestionID", -1) // Ajoute un paramètre nextQuestionID
+            startActivity(intent)
         }
     }
 
