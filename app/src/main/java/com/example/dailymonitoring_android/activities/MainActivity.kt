@@ -2,13 +2,13 @@ package com.example.dailymonitoring_android.activities
 
 import android.app.Activity
 import android.content.ActivityNotFoundException
-import android.content.Context
 import android.content.Intent
 import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
 import android.speech.RecognizerIntent
 import android.speech.tts.TextToSpeech
+import android.speech.tts.UtteranceProgressListener
 import android.util.Log
 import android.view.View
 import android.view.View.generateViewId
@@ -62,16 +62,29 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     }
 
     fun launchTTS(){
+        readQuestion()
+    }
+
+    private fun readQuestion(){
         val textQuestion = text_question.text.toString().trim()
         if (textQuestion.isNotEmpty()) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                tts?.speak(textQuestion, TextToSpeech.QUEUE_FLUSH, null, "tts1")
+                tts?.speak(textQuestion, TextToSpeech.QUEUE_FLUSH, null, "ttsQuestion")
             } else {
                 tts?.speak(textQuestion, TextToSpeech.QUEUE_FLUSH, null)
             }
         } else {
             Toast.makeText(this, "Il n'y a pas de texte à lire", Toast.LENGTH_LONG).show()
         }
+    }
+
+    private fun readResponses(){
+        var allResponses = "Les réponses sont : "
+        listButtons.forEach {
+            allResponses = allResponses.plus(it.text).plus(". Ou. ")
+        }
+        allResponses =  allResponses.dropLast(5)
+        tts?.speak(allResponses, TextToSpeech.QUEUE_FLUSH, null, "ttsResponse")
     }
 
     // Bouton qui lance le Text To Speech
@@ -149,6 +162,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                     generateTextQuestion(it[0].question)
                 }
             }
+
             override fun onFailure(call: Call<List<QRNQ>>, t: Throwable) {
                 Log.e("erreur QRNQ question", "erreur : $t")
             }
@@ -214,6 +228,23 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         if (status == TextToSpeech.SUCCESS) {
             // Langue Francaise
             tts!!.language = Locale.FRANCE
+
+            tts!!.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
+                override fun onStart(utteranceId: String) {
+                    //Log.i("TextToSpeech", "On Start")
+                }
+
+                override fun onDone(utteranceId: String) {
+                    if (utteranceId == "ttsQuestion"){
+                        readResponses()
+                    }
+                }
+
+                override fun onError(utteranceId: String) {
+                    //Log.i("TextToSpeech", "On Error")
+                }
+            })
+
             launchTTS()
         } else {
             Log.e("TTS", "Initialization Failed!")
