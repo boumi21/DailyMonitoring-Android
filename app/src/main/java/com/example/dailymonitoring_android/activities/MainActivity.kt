@@ -90,16 +90,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     // Bouton qui lance le Text To Speech
     fun speakTextToSpeech(){
         button_tts.setOnClickListener {
-            val text = text_stt.text.toString().trim()
-            if (text.isNotEmpty()) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                    tts?.speak(text, TextToSpeech.QUEUE_FLUSH, null, "tts1")
-                } else {
-                    tts?.speak(text, TextToSpeech.QUEUE_FLUSH, null)
-                }
-            } else {
-                Toast.makeText(this, "Il n'y a pas de texte à lire", Toast.LENGTH_LONG).show()
-            }
+            launchTTS()
         }
     }
 
@@ -131,11 +122,10 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 if (resultCode == Activity.RESULT_OK && data != null) {
                     val result = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
                     result?.let {
-                        val recognizedText = it[0]
-                        text_stt.text = recognizedText.toUpperCase().trim()
+                        val recognizedText = it[0].toUpperCase().trim()
 
                         listButtons.forEach {
-                            if (it.text == text_stt.text) {
+                            if (it.text == recognizedText) {
                                 it.performClick()
                             }
                         }
