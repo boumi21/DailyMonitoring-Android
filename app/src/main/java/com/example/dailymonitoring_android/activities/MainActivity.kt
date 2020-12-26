@@ -31,6 +31,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     private var tts: TextToSpeech? = null
     var listButtons = mutableListOf<Button>()
+    private var thisQuestion: Int = -1
 
     // Code pour Speech To Text
     companion object {
@@ -44,7 +45,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         val layout: LinearLayout = findViewById<View>(R.id.layout_responses) as LinearLayout
 
         //Récupère la question à traiter
-        val thisQuestion = intent.getIntExtra("nextQuestionID", -1) // Récupère le paramètre nextQuestionID
+        thisQuestion = intent.getIntExtra("nextQuestionID", -1) // Récupère le paramètre nextQuestionID
         Log.i("---", "---")
         Log.i("ID question suivante :", "$thisQuestion")
         Log.i("---", "---")
@@ -165,11 +166,14 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         val button = Button(this)
         button.text = "Quitter"
         button.id = generateViewId()
-        button.setBackgroundColor(Color.BLUE)
+        button.setBackgroundColor(Color.CYAN)
         button.setOnClickListener {
             finishAffinity()
         }
         layout.addView(button)
+
+        val buttonSTT = button_stt
+        buttonSTT.visibility = View.INVISIBLE
     }
 
 
@@ -226,7 +230,10 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
                 override fun onDone(utteranceId: String) {
                     if (utteranceId == "ttsQuestion"){
-                        readResponses()
+                        if (thisQuestion != -1){
+                            readResponses()
+                        }
+
                     }
                 }
 
